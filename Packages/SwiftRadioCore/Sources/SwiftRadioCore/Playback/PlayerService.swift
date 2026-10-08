@@ -476,13 +476,17 @@ extension PlayerService {
             object: nil,
             queue: .main
         ) { [weak self] notification in
-            Task { @MainActor [weak self] in self?.handleAudioInterruption(notification) }
+            // `Notification` is not Sendable: extract the plain values here, then hop.
+            let rawType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
+            let rawOptions = notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
+            Task { @MainActor [weak self] in
+                self?.handleAudioInterruption(typeRaw: rawType, optionsRaw: rawOptions)
+            }
         }
     }
 
-    private func handleAudioInterruption(_ notification: Notification) {
-        guard let userInfo = notification.userInfo,
-              let rawType = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+    private func handleAudioInterruption(typeRaw: UInt?, optionsRaw: UInt) {
+        guard let rawType = typeRaw,
               let type = AVAudioSession.InterruptionType(rawValue: rawType) else { return }
         switch type {
         case .began:
@@ -490,14 +494,13 @@ extension PlayerService {
             // Deliberately keep now-playing published so the card stays resumable.
             break
         case .ended:
-            reclaimNowPlayingAfterInterruption(userInfo: userInfo)
+            reclaimNowPlayingAfterInterruption(optionsRaw: optionsRaw)
         @unknown default:
             break
         }
     }
 
-    private func reclaimNowPlayingAfterInterruption(userInfo: [AnyHashable: Any]) {
-        let optionsRaw = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
+    private func reclaimNowPlayingAfterInterruption(optionsRaw: UInt) {
         let options = AVAudioSession.InterruptionOptions(rawValue: optionsRaw)
         if options.contains(.shouldResume) {
             // The system signals resuming is appropriate (e.g. a call ended and no

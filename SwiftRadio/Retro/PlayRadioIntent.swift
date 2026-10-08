@@ -50,7 +50,7 @@ struct RetroRadioShortcuts: AppShortcutsProvider {
                 "Start \(.applicationName)",
                 "Play radio with \(.applicationName)",
                 "用\(.applicationName)播放电台",
-                "播放电台"
+                "让\(.applicationName)播放电台"
             ],
             shortTitle: "播放电台",
             systemImageName: "radio"
@@ -62,7 +62,7 @@ struct RetroRadioShortcuts: AppShortcutsProvider {
                 "Stop \(.applicationName)",
                 "Pause radio with \(.applicationName)",
                 "用\(.applicationName)暂停电台",
-                "暂停电台"
+                "让\(.applicationName)暂停电台"
             ],
             shortTitle: "暂停电台",
             systemImageName: "pause.circle"

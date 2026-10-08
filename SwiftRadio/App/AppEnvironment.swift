@@ -25,6 +25,8 @@ import SwiftRadioCore
     /// The user's editable station list that feeds `stations`.
     let library: MyStationsLibrary
     let presets: RadioPresets
+    /// Sleep timer; stopping playback on fire.
+    let sleepTimer = SleepTimer()
     private var stationArtworkTask: Task<Void, Never>?
     private var trackArtworkTask: Task<Void, Never>?
 
@@ -60,6 +62,7 @@ import SwiftRadioCore
         artwork = ArtworkLoader()
         commands.bind(player: player, stations: stations)
         library.onChange = { [weak self] change in self?.libraryDidChange(change) }
+        sleepTimer.onFire = { [weak self] in self?.player.stop() }
         observeArtwork()
         observeLastStation()
         if Config.debugLog { observePlayback() }

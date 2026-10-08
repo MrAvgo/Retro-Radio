@@ -16,9 +16,11 @@ import SwiftUI
     @Environment(PlayerService.self) private var player
     @Environment(RadioPresets.self) private var presets
     @Environment(MyStationsLibrary.self) private var library
+    @Environment(SleepTimer.self) private var sleepTimer
 
     /// Station index the knob/dial is pointing at while the user is tuning; nil follows playback.
     @State private var tunedIndex: Int?
+    @State private var volumeController = VolumeController()
     @State private var knobAngle: Double = 0
     @State private var lastDragAngle: Double?
     @State private var stepAccumulator: Double = 0
@@ -30,7 +32,7 @@ import SwiftUI
 
     /// Degrees of knob rotation per station step.
     private let degreesPerStep: Double = 28
-    private let knobSize: CGFloat = 140
+    private let knobSize: CGFloat = 112
 
     var body: some View {
         ZStack {
@@ -72,6 +74,14 @@ import SwiftUI
             }
         }
         .tint(RetroPalette.amber)
+        .background {
+            // Keeps a real volume slider in the hierarchy so the volume knob can
+            // drive the system volume without showing the HUD.
+            SystemVolumeBridge(controller: volumeController)
+                .frame(width: 4, height: 4)
+                .opacity(0.02)
+                .allowsHitTesting(false)
+        }
         .sensoryFeedback(.selection, trigger: tickCount)
         .sensoryFeedback(.success, trigger: savedCount)
         .task(id: toast) {
@@ -103,6 +113,21 @@ import SwiftUI
                 .font(.system(size: 20, weight: .semibold, design: .serif))
                 .foregroundStyle(RetroPalette.brass)
             Spacer()
+            Button { sleepTimer.cycle() } label: {
+                VStack(spacing: 1) {
+                    Image(systemName: sleepTimer.isActive ? "moon.zzz.fill" : "moon")
+                        .font(.system(size: 17))
+                    if let minutes = sleepTimer.remainingMinutes {
+                        Text("\(minutes)′")
+                            .font(.system(size: 8, weight: .semibold))
+                    }
+                }
+                .frame(width: 40, height: 40)
+            }
+            .accessibilityLabel(sleepTimer.isActive
+                                ? "睡眠定时：还剩 \(sleepTimer.remainingMinutes ?? 0) 分钟"
+                                : "睡眠定时")
+            .accessibilityHint("轻点切换 15、30、60、90 分钟后停止播放")
             Button { showSearch = true } label: {
                 Image(systemName: "magnifyingglass")
                     .frame(width: 40, height: 40)
@@ -144,13 +169,13 @@ import SwiftUI
     }
 
     private var controls: some View {
-        HStack(alignment: .center) {
-            VStack(spacing: 16) {
+        HStack(alignment: .top, spacing: 6) {
+            VStack(spacing: 14) {
                 Button { togglePlayback() } label: {
                     Image(systemName: isActive ? "pause.fill" : "play.fill")
-                        .font(.system(size: 30, weight: .semibold))
+                        .font(.system(size: 28, weight: .semibold))
                         .foregroundStyle(RetroPalette.lcdBackground)
-                        .frame(width: 76, height: 76)
+                        .frame(width: 68, height: 68)
                         .background(
                             Circle().fill(LinearGradient(colors: [RetroPalette.amber, RetroPalette.brass],
                                                          startPoint: .top, endPoint: .bottom))
@@ -160,7 +185,7 @@ import SwiftUI
                 }
                 .accessibilityLabel(isActive ? "暂停" : "播放")
 
-                HStack(spacing: 22) {
+                HStack(spacing: 20) {
                     Button { step(-1, commit: true) } label: {
                         Image(systemName: "backward.end.fill")
                     }
@@ -170,7 +195,7 @@ import SwiftUI
                     }
                     .accessibilityLabel("下一个电台")
                 }
-                .font(.system(size: 18))
+                .font(.system(size: 17))
                 .foregroundStyle(RetroPalette.brass)
             }
             .frame(maxWidth: .infinity)
@@ -190,6 +215,14 @@ import SwiftUI
                         }
                     }
                 Text("转动调台")
+                    .font(.system(size: 10))
+                    .foregroundStyle(RetroPalette.brass.opacity(0.6))
+            }
+            .frame(maxWidth: .infinity)
+
+            VStack(spacing: 6) {
+                VolumeKnobView(controller: volumeController)
+                Text("音量")
                     .font(.system(size: 10))
                     .foregroundStyle(RetroPalette.brass.opacity(0.6))
             }

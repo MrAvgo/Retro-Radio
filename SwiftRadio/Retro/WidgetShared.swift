@@ -53,8 +53,10 @@ struct WidgetPlaybackState: Codable, Sendable {
 /// app. The main app registers its handler at launch; the widget extension process
 /// never sets it (and never needs to — perform() runs in the app process).
 enum WidgetPlaybackBridge {
-    /// Set once by the main app at launch.
-    static var toggleHandler: (@Sendable () async -> Void)?
+    /// Set once by the main app at launch, read from the intent afterwards.
+    /// `nonisolated(unsafe)` because Swift 6 flags any mutable global; the
+    /// single write happens at launch before any concurrent read.
+    nonisolated(unsafe) static var toggleHandler: (@Sendable () async -> Void)?
 }
 
 /// Widget button: toggles playback without opening the app UI.

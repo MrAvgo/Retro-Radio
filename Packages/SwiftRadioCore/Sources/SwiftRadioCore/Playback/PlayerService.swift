@@ -497,7 +497,7 @@ extension PlayerService {
     }
 
     private func reclaimNowPlayingAfterInterruption(userInfo: [AnyHashable: Any]) {
-        let optionsRaw = userInfo[AVAudioSessionInterruptionOptionsKey] as? UInt ?? 0
+        let optionsRaw = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
         let options = AVAudioSession.InterruptionOptions(rawValue: optionsRaw)
         if options.contains(.shouldResume) {
             // The system signals resuming is appropriate (e.g. a call ended and no

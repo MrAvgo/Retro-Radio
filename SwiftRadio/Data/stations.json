@@ -1,0 +1,85 @@
+{
+    "station":
+    [
+        {
+            "name": "KEXP 90.3 Seattle",
+            "website": "https://www.kexp.org",
+            "streamURL": "https://kexp-mp3-128.streamguys1.com/kexp128.mp3",
+            "imageURL": "",
+            "desc": "西雅图独立音乐电台",
+            "longDesc": "KEXP 90.3 FM, listener-powered independent music radio from Seattle."
+        },
+        {
+            "name": "KCRW 89.9 Los Angeles",
+            "website": "https://www.kcrw.com",
+            "streamURL": "https://streams.kcrw.com/kcrw_mp3",
+            "imageURL": "https://www.kcrw.com/++theme++kcrw.theme/icons/apple-touch-icon.png",
+            "desc": "洛杉矶公共电台 · 音乐与新闻",
+            "longDesc": "KCRW 89.9 FM, Southern California's public radio for music, news and culture."
+        },
+        {
+            "name": "NPR 24 小时节目",
+            "website": "https://www.npr.org",
+            "streamURL": "https://npr-ice.streamguys1.com/live.mp3",
+            "imageURL": "https://static-assets.npr.org/static/images/favicon/favicon-96x96.png",
+            "desc": "美国国家公共电台",
+            "longDesc": "NPR 24 hour program stream."
+        },
+        {
+            "name": "BBC World Service",
+            "website": "https://www.bbc.co.uk/worldserviceradio",
+            "streamURL": "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
+            "imageURL": "",
+            "desc": "BBC 国际广播（英语）",
+            "longDesc": "BBC World Service English radio."
+        },
+        {
+            "name": "中国之声 CNR-1",
+            "website": "https://www.cnr.cn",
+            "streamURL": "https://lhttp.qtfm.cn/live/15318317/64k.mp3",
+            "imageURL": "",
+            "desc": "中央人民广播电台",
+            "longDesc": "中央人民广播电台中国之声。"
+        },
+        {
+            "name": "香港电台普通话台",
+            "website": "https://www.rthk.hk",
+            "streamURL": "https://rthkradiopth-live.akamaized.net/hls/live/2040082/radiopth/master.m3u8",
+            "imageURL": "",
+            "desc": "RTHK Putonghua",
+            "longDesc": "香港电台普通话台。"
+        },
+        {
+            "name": "RFI 法广华语",
+            "website": "https://www.rfi.fr/cn/",
+            "streamURL": "https://rfienchinois64k.ice.infomaniak.ch/rfienchinois-64.mp3",
+            "imageURL": "",
+            "desc": "法国国际广播电台中文",
+            "longDesc": "RFI 法国国际广播电台华语广播。"
+        },
+        {
+            "name": "The Rock FM",
+            "website": "https://www.therock.net.nz",
+            "streamURL": "https://20593.live.streamtheworld.com/CKGEFMAAC.aac",
+            "imageURL": "station-therockfm",
+            "desc": "Rock Music",
+            "longDesc": "NZ's number one Rock music station."
+        },
+        {
+            "name": "Choice Classic Rock",
+            "website": "https://www.choiceclassicrock.com",
+            "streamURL": "https://streamer.radio.co/s66f2626b4/listen",
+            "imageURL": "station-classicrock",
+            "desc": "Classic rock hits and deep tracks",
+            "longDesc": "Classic rock hits and deep tracks."
+        },
+        {
+            "name": "Absolute Country Hits",
+            "website": "https://www.1.fm/station/acountry",
+            "streamURL": "http://strm112.1.fm/acountry_mobile_mp3",
+            "imageURL": "station-absolutecountry",
+            "desc": "The Music Starts Here",
+            "longDesc": "All your favorite country hits and artists on 1.FM's Absolute Country."
+        }
+    ]
+}

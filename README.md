@@ -30,7 +30,7 @@
 
 - 免费 Apple ID 签名的 App **7 天后会失效**，需要用同样的工具重新签名安装（数据会保留）。AltStore 可以在同一 Wi-Fi 下自动续签。
 - 免费 Apple ID 最多同时安装 3 个自签 App。
-- App 的 Bundle ID 是 `com.xiaochao.retroradio`。为了能用免费 Apple ID 签名，已去掉 CarPlay 等需要付费开发者账号的功能。
+- App 的 Bundle ID 是 `one.lxc.retroradio`（小组件是 `one.lxc.retroradio.widget`）。为了能用免费 Apple ID 签名，已去掉 CarPlay 等需要付费开发者账号的功能。
 
 ## 自己编译
 

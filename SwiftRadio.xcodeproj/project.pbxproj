@@ -22,7 +22,7 @@
 		CE6A3E43291F376D0058C82A /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = CE6A3E2E291F376D0058C82A /* FRadioPlayer */; };
 		CFC6B6FC786E4B78970C9332 /* WidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73F7BCABC5B447C090E1DFCF /* WidgetShared.swift */; };
 		7C0115393CB04481963DEBD8 /* RetroRadioWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3331A62C22B4FD8B7720709 /* RetroRadioWidget.swift */; };
-		C333C937FB974BC7B1E73B18 /* RetroRadioWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; productRef = E0C5CC39AE5C48A5B4CD60B1 /* RetroRadioWidget.appex */; };
+		C333C937FB974BC7B1E73B18 /* RetroRadioWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E0C5CC39AE5C48A5B4CD60B1 /* RetroRadioWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */

@@ -52,6 +52,11 @@ jobs:
           set -euo pipefail
           APP_PATH=$(find build/RetroRadio.xcarchive/Products/Applications -maxdepth 1 -name "*.app" -print -quit)
           mkdir Payload && cp -R "$APP_PATH" Payload/
+          # Sideload reliability: free Apple IDs + AltStore choke on the widget
+          # extension (extra App ID + App Group registration), crashing the
+          # install. Strip PlugIns from the sideload IPA; widget sources stay
+          # in the repo for a future revisit.
+          rm -rf Payload/*.app/PlugIns
           zip -qry RetroRadio.ipa Payload
 
       - name: Publish Release

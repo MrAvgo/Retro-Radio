@@ -115,12 +115,10 @@ import SwiftUI
             Spacer()
             Button { sleepTimer.cycle() } label: {
                 VStack(spacing: 1) {
-                    Image(systemName: sleepTimer.isActive ? "moon.zzz.fill" : "moon")
+                    Image(systemName: "moon.zzz.fill")
                         .font(.system(size: 17))
-                    if let minutes = sleepTimer.remainingMinutes {
-                        Text("\(minutes)′")
-                            .font(.system(size: 8, weight: .semibold))
-                    }
+                    Text("\(sleepTimer.remainingMinutes ?? 0)′")
+                        .font(.system(size: 8, weight: .semibold))
                 }
                 .frame(width: 40, height: 40)
             }

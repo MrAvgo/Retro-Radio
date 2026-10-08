@@ -20,6 +20,9 @@
 		AB4000010000000000000002 /* LNPopupUI in Embed Frameworks */ = {isa = PBXBuildFile; productRef = AB2000010000000000000002 /* LNPopupUI */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CE37D7B7290F4A9700B0933B /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = CE37D7B6290F4A9700B0933B /* FRadioPlayer */; };
 		CE6A3E43291F376D0058C82A /* FRadioPlayer in Frameworks */ = {isa = PBXBuildFile; productRef = CE6A3E2E291F376D0058C82A /* FRadioPlayer */; };
+		CFC6B6FC786E4B78970C9332 /* WidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73F7BCABC5B447C090E1DFCF /* WidgetShared.swift */; };
+		7C0115393CB04481963DEBD8 /* RetroRadioWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3331A62C22B4FD8B7720709 /* RetroRadioWidget.swift */; };
+		C333C937FB974BC7B1E73B18 /* RetroRadioWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; productRef = E0C5CC39AE5C48A5B4CD60B1 /* RetroRadioWidget.appex */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +32,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 9409E1151ABF6FEA00312E2B;
 			remoteInfo = SwiftRadio;
+		};
+		D6E435E9AA7744CCA1CDEEB9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9409E10E1ABF6FE900312E2B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2D908A3208E54E9898931FD1;
+			remoteInfo = RetroRadioWidget;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -55,6 +65,17 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EC1C848317BE40E9B53630E5 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C333C937FB974BC7B1E73B18 /* RetroRadioWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +84,11 @@
 		2C5545BE1C1124DE00728469 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9409E1161ABF6FEA00312E2B /* SwiftRadio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftRadio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE6A3E4F291F376D0058C82A /* SwiftRadio-CarPlay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SwiftRadio-CarPlay.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		73F7BCABC5B447C090E1DFCF /* WidgetShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SwiftRadio/Retro/WidgetShared.swift"; sourceTree = "<group>"; };
+		F3331A62C22B4FD8B7720709 /* RetroRadioWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetroRadioWidget.swift; sourceTree = "<group>"; };
+		94E82ACBAFFB404D85EEB3EB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		298BF383615C4FA599D474CF /* RetroRadioWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RetroRadioWidget.entitlements; sourceTree = "<group>"; };
+		E0C5CC39AE5C48A5B4CD60B1 /* RetroRadioWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RetroRadioWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -128,6 +154,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		002C0F1B9DFA411F8413D5EB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -145,6 +178,7 @@
 			children = (
 				9409E1181ABF6FEA00312E2B /* SwiftRadio */,
 				2C5545BB1C1124DE00728469 /* SwiftRadioUITests */,
+				C3D31462CADB4EC682306421 /* RetroRadioWidget */,
 				9409E1171ABF6FEA00312E2B /* Products */,
 				CE6036262A48F70A00E15E15 /* Frameworks */,
 			);
@@ -154,6 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				9409E1161ABF6FEA00312E2B /* SwiftRadio.app */,
+				E0C5CC39AE5C48A5B4CD60B1 /* RetroRadioWidget.appex */,
 				2C5545BA1C1124DE00728469 /* SwiftRadioUITests.xctest */,
 				CE6A3E4F291F376D0058C82A /* SwiftRadio-CarPlay.app */,
 			);
@@ -165,6 +200,16 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C3D31462CADB4EC682306421 /* RetroRadioWidget */ = {
+			isa = PBXGroup;
+			children = (
+				F3331A62C22B4FD8B7720709 /* RetroRadioWidget.swift */,
+				94E82ACBAFFB404D85EEB3EB /* Info.plist */,
+				298BF383615C4FA599D474CF /* RetroRadioWidget.entitlements */,
+			);
+			path = RetroRadioWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -196,10 +241,12 @@
 				9409E1131ABF6FEA00312E2B /* Frameworks */,
 				9409E1141ABF6FEA00312E2B /* Resources */,
 				CA2B6C732F327107000CB4D4 /* Embed Frameworks */,
+				EC1C848317BE40E9B53630E5 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				1B800D020D4D452CBDA18FAF /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				9409E1181ABF6FEA00312E2B /* SwiftRadio */,
@@ -244,6 +291,23 @@
 			productReference = CE6A3E4F291F376D0058C82A /* SwiftRadio-CarPlay.app */;
 			productType = "com.apple.product-type.application";
 		};
+		2D908A3208E54E9898931FD1 /* RetroRadioWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB3499FE8A1C49F89FB62925 /* Build configuration list for PBXNativeTarget "RetroRadioWidget" */;
+			buildPhases = (
+				B8520E03EA354B1BA4E22A49 /* Sources */,
+				002C0F1B9DFA411F8413D5EB /* Frameworks */,
+				C75FB7B9A99447F2BFC771DA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RetroRadioWidget;
+			productName = "$(TARGET_NAME)";
+			productReference = E0C5CC39AE5C48A5B4CD60B1 /* RetroRadioWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -270,6 +334,9 @@
 							};
 						};
 					};
+					2D908A3208E54E9898931FD1 = {
+						CreatedOnToolsVersion = 16.0;
+					};
 				};
 			};
 			buildConfigurationList = 9409E1111ABF6FE900312E2B /* Build configuration list for PBXProject "SwiftRadio" */;
@@ -294,6 +361,7 @@
 			projectRoot = "";
 			targets = (
 				9409E1151ABF6FEA00312E2B /* SwiftRadio */,
+				2D908A3208E54E9898931FD1 /* RetroRadioWidget */,
 				CE6A3E2B291F376D0058C82A /* SwiftRadio-CarPlay */,
 				2C5545B91C1124DE00728469 /* SwiftRadioUITests */,
 			);
@@ -316,6 +384,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		CE6A3E45291F376D0058C82A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C75FB7B9A99447F2BFC771DA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -347,6 +422,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B8520E03EA354B1BA4E22A49 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CFC6B6FC786E4B78970C9332 /* WidgetShared.swift in Sources */,
+				7C0115393CB04481963DEBD8 /* RetroRadioWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -354,6 +438,11 @@
 			isa = PBXTargetDependency;
 			target = 9409E1151ABF6FEA00312E2B /* SwiftRadio */;
 			targetProxy = 2C5545BF1C1124DE00728469 /* PBXContainerItemProxy */;
+		};
+		1B800D020D4D452CBDA18FAF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2D908A3208E54E9898931FD1 /* RetroRadioWidget */;
+			targetProxy = D6E435E9AA7744CCA1CDEEB9 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -515,6 +604,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SwiftRadio/SwiftRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -548,6 +638,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SwiftRadio/SwiftRadio.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -653,6 +744,58 @@
 			};
 			name = Release;
 		};
+		4C9ED3AEC53D4288A4B97034 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = RetroRadioWidget/RetroRadioWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				INFOPLIST_FILE = RetroRadioWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = one.lxc.retroradio.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 6.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		2AC98F35FD7B4D0EAEF36F89 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = RetroRadioWidget/RetroRadioWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				INFOPLIST_FILE = RetroRadioWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = one.lxc.retroradio.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -688,6 +831,15 @@
 			buildConfigurations = (
 				CE6A3E4D291F376D0058C82A /* Debug */,
 				CE6A3E4E291F376D0058C82A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BB3499FE8A1C49F89FB62925 /* Build configuration list for PBXNativeTarget "RetroRadioWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C9ED3AEC53D4288A4B97034 /* Debug */,
+				2AC98F35FD7B4D0EAEF36F89 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -11,6 +11,7 @@
 import Observation
 import OSLog
 import SwiftRadioCore
+import WidgetKit
 
 /// Composes the single playback owner, shared stores, and scene-independent artwork updates.
 @MainActor final class AppEnvironment {
@@ -63,7 +64,11 @@ import SwiftRadioCore
         commands.bind(player: player, stations: stations)
         library.onChange = { [weak self] change in self?.libraryDidChange(change) }
         sleepTimer.onFire = { [weak self] in self?.player.stop() }
+        WidgetPlaybackBridge.toggleHandler = {
+            await AppEnvironment.shared.handleWidgetToggle()
+        }
         observeArtwork()
+        observeWidgetState()
         observeLastStation()
         if Config.debugLog { observePlayback() }
     }
@@ -91,6 +96,43 @@ import SwiftRadioCore
                 player.updateArtwork(image, for: station.id, artworkURL: url)
             }
         }
+    }
+
+    // MARK: - Widget: background play/pause without opening the UI
+
+    /// Widget button entry point. Runs in the app process after the system
+    /// background-launches the app; the UI is never shown.
+    func handleWidgetToggle() async {
+        if player.state == .playing || player.isBuffering {
+            player.pause()
+        } else {
+            if stations.loadState != .loaded { await stations.load() }
+            resumePlayback()
+        }
+        publishWidgetState()
+    }
+
+    /// Publishes the playback state to the App Group and asks WidgetKit to redraw.
+    private func publishWidgetState() {
+        WidgetShared.writeState(WidgetPlaybackState(
+            stationName: stations.currentStation?.name ?? "复古电台",
+            isPlaying: player.state == .playing || player.isBuffering
+        ))
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Re-publishes whenever the station or playback state changes.
+    private func observeWidgetState() {
+        let snapshot = withObservationTracking {
+            WidgetPlaybackState(
+                stationName: self.stations.currentStation?.name ?? "复古电台",
+                isPlaying: self.player.state == .playing || self.player.isBuffering
+            )
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in self?.observeWidgetState() }
+        }
+        WidgetShared.writeState(snapshot)
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     // MARK: - Retro radio: resume, autoplay and library sync

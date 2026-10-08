@@ -13,6 +13,7 @@ import OSLog
 import os
 import Observation
 import UIKit
+import AVFAudio
 import FRadioPlayer
 
 /// Owns observable playback and translates engine callbacks into application-owned state.
@@ -59,6 +60,8 @@ import FRadioPlayer
     @ObservationIgnored private var trackArtwork: UIImage?
     /// The station that was current when the engine reported `artworkURL`.
     @ObservationIgnored private var artworkStationID: String?
+    /// Retained token for the audio-interruption observer (block-based observers die with it).
+    @ObservationIgnored private var interruptionObserver: NSObjectProtocol?
 
     /// `mixesWithOtherAudio` keeps other apps playing underneath, at the cost of lock-screen,
     /// Control Center and CarPlay Now Playing (see `AudioSessionConfigurator.categoryOptions`).
@@ -79,6 +82,7 @@ import FRadioPlayer
         self.remoteCommands = remoteCommands
         self.activateAudioSession = activateAudioSession
         player.addObserver(self)
+        observeAudioInterruptions()
     }
 
     /// Creates the vendor adapter; call once in the composition root.
@@ -455,6 +459,59 @@ extension PlayerService {
         }
         nonisolated func radioPlayer(_ player: FRadioPlayer, playTimeDidChange currentTime: TimeInterval, duration: TimeInterval) {
             deliverOnMainActor { [weak self] in self?.observer?.playTimeDidChange(currentTime, duration: duration) }
+        }
+    }
+}
+
+extension PlayerService {
+    /// iOS drops our lock-screen / Control Center card when an interruption (phone call,
+    /// another app's audio, Siri, alarm) deactivates the audio session — and nothing
+    /// re-registers us when it ends. In daily use that reads as "the controls disappear
+    /// after a while". Re-publish when the interruption ends so the card comes back
+    /// without opening the app. Playback itself is never auto-resumed: an explicit
+    /// pause or stop stands until the user presses play again.
+    private func observeAudioInterruptions() {
+        interruptionObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            Task { @MainActor [weak self] in self?.handleAudioInterruption(notification) }
+        }
+    }
+
+    private func handleAudioInterruption(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let rawType = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: rawType) else { return }
+        switch type {
+        case .began:
+            // The system deactivated our session; the engine already paused.
+            // Deliberately keep now-playing published so the card stays resumable.
+            break
+        case .ended:
+            reclaimNowPlayingAfterInterruption(userInfo: userInfo)
+        @unknown default:
+            break
+        }
+    }
+
+    private func reclaimNowPlayingAfterInterruption(userInfo: [AnyHashable: Any]) {
+        let optionsRaw = userInfo[AVAudioSessionInterruptionOptionsKey] as? UInt ?? 0
+        let options = AVAudioSession.InterruptionOptions(rawValue: optionsRaw)
+        if options.contains(.shouldResume) {
+            // The system signals resuming is appropriate (e.g. a call ended and no
+            // other app took over): reactivate the session, then re-publish the card.
+            // This only restores the controls; it does not start playback.
+            Task { @MainActor [weak self] in
+                try? await self?.activateAudioSession?()
+                self?.publish()
+            }
+        } else {
+            // Another app may own audio now; re-publishing is harmless (it cannot
+            // steal the slot from an actively playing app) and restores our card
+            // when nothing else is playing.
+            publish()
         }
     }
 }

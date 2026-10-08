@@ -161,6 +161,12 @@ import WidgetKit
         resumePlayback()
     }
 
+    /// Siri / Shortcuts entry point: pause without opening the UI. Runs fine from a
+    /// background launch; pausing needs no audio session and no station catalog.
+    func pausePlayback() {
+        player.pause()
+    }
+
     /// Plays the current station, else the last-played one, else the first of My Stations.
     /// Never pauses: a playing or still-loading stream is left alone, a failed one is reloaded.
     func resumePlayback() {

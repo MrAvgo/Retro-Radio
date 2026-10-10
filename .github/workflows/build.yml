@@ -6,6 +6,10 @@ on:
       src_url:
         description: "Source tarball URL"
         required: true
+      with_widget:
+        description: "Include the Widget extension in the IPA (AltStore install may fail)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -54,16 +58,18 @@ jobs:
           mkdir Payload && cp -R "$APP_PATH" Payload/
           # Sideload reliability: free Apple IDs + AltStore choke on the widget
           # extension (extra App ID + App Group registration), crashing the
-          # install. Strip PlugIns from the sideload IPA; widget sources stay
-          # in the repo for a future revisit.
-          rm -rf Payload/*.app/PlugIns
+          # install. Strip PlugIns from the sideload IPA unless explicitly
+          # requested; widget sources stay in the repo either way.
+          if [ "${{ inputs.with_widget }}" != "true" ]; then
+            rm -rf Payload/*.app/PlugIns
+          fi
           zip -qry RetroRadio.ipa Payload
 
       - name: Publish Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: 复古电台 build ${{ github.run_number }}
+          name: 复古电台 build ${{ github.run_number }}${{ inputs.with_widget == true && '（带小组件）' || '' }}
           make_latest: true
           files: RetroRadio.ipa
           body: 未签名 IPA，用 Sideloadly / AltStore / 爱思助手 + 免费 Apple ID 自签安装，7 天后需重签。

@@ -20,7 +20,6 @@ import SwiftUI
                 .environment(appDelegate.environment.stations)
                 .environment(appDelegate.environment.player)
                 .environment(appDelegate.environment.library)
-                .environment(appDelegate.environment.presets)
                 .environment(appDelegate.environment.sleepTimer)
                 .environment(\.artworkLoader, appDelegate.environment.artwork)
                 .tint(Color(uiColor: Config.tintColor))

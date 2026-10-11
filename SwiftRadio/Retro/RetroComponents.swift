@@ -212,6 +212,52 @@ struct TuningKnob: View {
     }
 }
 
+// MARK: - Station row logo
+
+/// Logo thumbnail for settings/my-stations rows. Reuses the same cached logos
+/// as the preset keys via `ArtworkLoader.logo(for:)`; falls back to the generic
+/// radio glyph when the station has no logo.
+struct StationRowLogo: View {
+    let station: RadioStation
+    var isPlaying: Bool = false
+    var isCurrent: Bool = false
+
+    @Environment(\.artworkLoader) private var artworkLoader
+    @State private var logo: UIImage?
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.white.opacity(0.12))
+            if let logo {
+                Image(uiImage: logo)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(4)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            } else {
+                Image(systemName: "radio")
+                    .foregroundStyle(isCurrent ? RetroPalette.amber : .secondary)
+            }
+        }
+        .frame(width: 40, height: 40)
+        .overlay(alignment: .bottomTrailing) {
+            if isPlaying {
+                Image(systemName: "speaker.wave.2.fill")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(5)
+                    .background(Circle().fill(RetroPalette.amber))
+            }
+        }
+        .task(id: station.id + "|" + station.imageURL) {
+            logo = nil
+            guard let loader = artworkLoader else { return }
+            logo = await loader.logo(for: station)
+        }
+    }
+}
+
 // MARK: - Preset key
 
 /// One mechanical preset key. Shows the station's logo when one is available,

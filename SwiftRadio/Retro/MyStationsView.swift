@@ -115,9 +115,9 @@ import SwiftUI
     private func row(for station: SwiftRadioCore.RadioStation) -> some View {
         let isCurrent = station.id == stations.currentStation?.id
         return HStack(spacing: 12) {
-            Image(systemName: isCurrent && player.state == .playing ? "speaker.wave.2.fill" : "radio")
-                .foregroundStyle(isCurrent ? RetroPalette.amber : .secondary)
-                .frame(width: 24)
+            StationRowLogo(station: station,
+                           isPlaying: isCurrent && player.state == .playing,
+                           isCurrent: isCurrent)
             VStack(alignment: .leading, spacing: 2) {
                 Text(station.name)
                     .foregroundStyle(.primary)

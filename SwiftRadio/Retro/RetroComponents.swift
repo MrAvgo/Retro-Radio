@@ -273,7 +273,7 @@ struct PresetKey: View {
         }
         .offset(y: isActive ? 2 : 0)
         .opacity(station == nil ? 0.75 : 1)
-        .task(id: station?.id) {
+        .task(id: station.map { "\($0.id)|\($0.imageURL)" }) {
             logo = nil
             guard let station, let loader = artworkLoader else { return }
             logo = await loader.logo(for: station)

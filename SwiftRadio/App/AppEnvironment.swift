@@ -11,6 +11,7 @@
 import Observation
 import OSLog
 import SwiftRadioCore
+import UIKit
 import WidgetKit
 
 /// Composes the single playback owner, shared stores, and scene-independent artwork updates.
@@ -68,6 +69,7 @@ import WidgetKit
         observeArtwork()
         observeWidgetState()
         observeLastStation()
+        observeLogoDiscovery()
         if Config.debugLog { observePlayback() }
     }
 
@@ -143,6 +145,50 @@ import WidgetKit
             Task { @MainActor [weak self] in self?.observeLastStation() }
         }
         if let station { PlaybackMemory.lastStation = station }
+    }
+
+    // MARK: - Logo discovery
+
+    /// Stations already tried this launch (hit or miss); misses are retried next launch.
+    private var logoDiscoveryAttempted: Set<String> = []
+
+    /// When tuning to a station that has no logo URL, try its website favicon.
+    /// A hit is written back to the library (persisted), so preset keys and lists
+    /// pick it up; the check runs on every tune, as requested.
+    private func observeLogoDiscovery() {
+        let station = withObservationTracking {
+            stations.currentStation
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in self?.observeLogoDiscovery() }
+        }
+        guard let station else { return }
+        Task { [weak self] in await self?.discoverLogoIfNeeded(for: station) }
+    }
+
+    private func discoverLogoIfNeeded(for station: SwiftRadioCore.RadioStation) async {
+        guard station.imageURL.isEmpty else { return }
+        guard let website = station.website, !website.isEmpty,
+              let host = URL(string: website)?.host, !host.isEmpty else { return }
+        guard logoDiscoveryAttempted.insert(station.id).inserted else { return }
+
+        for urlString in ["https://\(host)/apple-touch-icon.png", "https://\(host)/favicon.ico"] {
+            guard let url = URL(string: urlString),
+                  await isValidFavicon(at: url) else { continue }
+            var updated = station
+            updated.imageURL = urlString
+            if let index = library.stations.firstIndex(where: { $0.id == station.id }) {
+                _ = library.update(library.stations[index], to: updated)
+            }
+            return
+        }
+    }
+
+    private func isValidFavicon(at url: URL) async -> Bool {
+        guard let (data, response) = try? await URLSession.shared.data(from: url),
+              let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+              let image = UIImage(data: data),
+              min(image.size.width, image.size.height) >= 16 else { return false }
+        return true
     }
 
     /// Called when the app opens. Respects the "打开 App 自动播放" setting.

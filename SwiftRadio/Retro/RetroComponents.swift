@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftRadioCore
 
 // MARK: - Amber display
 
@@ -213,25 +214,39 @@ struct TuningKnob: View {
 
 // MARK: - Preset key
 
-/// One mechanical preset key: number plus a short station name.
+/// One mechanical preset key. Shows the station's logo when one is available,
+/// otherwise the slot number plus a short station name (the default key face).
 struct PresetKey: View {
     let number: Int
-    let title: String?
+    let station: RadioStation?
     let isActive: Bool
 
+    @Environment(\.artworkLoader) private var artworkLoader
+    @State private var logo: UIImage?
+
     var body: some View {
-        VStack(spacing: 3) {
-            Text("\(number)")
-                .font(.system(size: 17, weight: .bold, design: .serif))
-            Text(title ?? "—")
-                .font(.system(size: 9, weight: .medium))
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+        ZStack {
+            if let logo {
+                Image(uiImage: logo)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(7)
+                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+            } else {
+                VStack(spacing: 3) {
+                    Text("\(number)")
+                        .font(.system(size: 17, weight: .bold, design: .serif))
+                    Text(station?.name ?? "—")
+                        .font(.system(size: 9, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                .foregroundStyle(RetroPalette.dialInk)
+                .padding(.horizontal, 2)
+            }
         }
-        .foregroundStyle(RetroPalette.dialInk)
         .frame(maxWidth: .infinity)
         .frame(height: 52)
-        .padding(.horizontal, 2)
         .background(
             RoundedRectangle(cornerRadius: 7, style: .continuous)
                 .fill(LinearGradient(colors: [RetroPalette.keyFace, RetroPalette.keyFace.opacity(0.82)],
@@ -239,6 +254,16 @@ struct PresetKey: View {
                 .shadow(color: .black.opacity(isActive ? 0.2 : 0.55), radius: isActive ? 1 : 3,
                         y: isActive ? 1 : 3)
         )
+        .overlay(alignment: .topLeading) {
+            // Slot number stays visible on logo keys so presets keep their 1–6 identity.
+            if logo != nil {
+                Text("\(number)")
+                    .font(.system(size: 9, weight: .bold, design: .serif))
+                    .foregroundStyle(RetroPalette.dialInk.opacity(0.65))
+                    .padding(.leading, 6)
+                    .padding(.top, 4)
+            }
+        }
         .overlay(alignment: .top) {
             Capsule()
                 .fill(isActive ? RetroPalette.amber : Color.clear)
@@ -247,6 +272,11 @@ struct PresetKey: View {
                 .padding(.top, 4)
         }
         .offset(y: isActive ? 2 : 0)
-        .opacity(title == nil ? 0.75 : 1)
+        .opacity(station == nil ? 0.75 : 1)
+        .task(id: station?.id) {
+            logo = nil
+            guard let station, let loader = artworkLoader else { return }
+            logo = await loader.logo(for: station)
+        }
     }
 }

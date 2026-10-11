@@ -25,7 +25,6 @@ import WidgetKit
     let artwork: ArtworkLoader
     /// The user's editable station list that feeds `stations`.
     let library: MyStationsLibrary
-    let presets: RadioPresets
     /// Sleep timer; stopping playback on fire.
     let sleepTimer = SleepTimer()
     private var stationArtworkTask: Task<Void, Never>?
@@ -58,7 +57,6 @@ import WidgetKit
         // Seeds My Stations on first launch before the store's first load reads it.
         let library = MyStationsLibrary()
         self.library = library
-        presets = RadioPresets(defaultStations: library.stations)
         stations = StationsStore(loader: MyStationsLoader(), player: player)
         artwork = ArtworkLoader()
         commands.bind(player: player, stations: stations)
@@ -176,9 +174,8 @@ import WidgetKit
 
     private func rememberedStation() -> SwiftRadioCore.RadioStation? {
         guard let last = PlaybackMemory.lastStation else { return nil }
-        if let match = stations.stations.first(where: { $0.streamURL == last.streamURL }) { return match }
-        // A station tuned from a preset or the search screen need not be in My Stations.
-        return presets.contains(streamURL: last.streamURL) ? last : nil
+        // Presets are the first six of My Stations now, so the catalog check covers them.
+        return stations.stations.first(where: { $0.streamURL == last.streamURL })
     }
 
     /// Reloads the shared store after an edit and keeps the current stream going when it still exists.
@@ -188,7 +185,6 @@ import WidgetKit
         var keepPlaying = current
         switch change {
         case .edited(let old, let new):
-            presets.replace(old, with: new)
             if current?.id == old.id { keepPlaying = new }
             if PlaybackMemory.lastStation?.id == old.id { PlaybackMemory.lastStation = new }
         case .deleted(let removed):

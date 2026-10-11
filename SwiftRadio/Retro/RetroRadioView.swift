@@ -14,7 +14,6 @@ import SwiftUI
 @MainActor struct RetroRadioView: View {
     @Environment(StationsStore.self) private var stations
     @Environment(PlayerService.self) private var player
-    @Environment(RadioPresets.self) private var presets
     @Environment(MyStationsLibrary.self) private var library
     @Environment(SleepTimer.self) private var sleepTimer
 
@@ -25,7 +24,6 @@ import SwiftUI
     @State private var lastDragAngle: Double?
     @State private var stepAccumulator: Double = 0
     @State private var tickCount = 0
-    @State private var savedCount = 0
     @State private var toast: String?
     @State private var showMyStations = false
     @State private var showSearch = false
@@ -83,7 +81,6 @@ import SwiftUI
                 .allowsHitTesting(false)
         }
         .sensoryFeedback(.selection, trigger: tickCount)
-        .sensoryFeedback(.success, trigger: savedCount)
         .task(id: toast) {
             guard toast != nil else { return }
             try? await Task.sleep(for: .seconds(1.8))
@@ -95,7 +92,6 @@ import SwiftUI
                 .environment(stations)
                 .environment(player)
                 .environment(library)
-                .environment(presets)
         }
         .sheet(isPresented: $showSearch) {
             StationSearchView()
@@ -141,25 +137,26 @@ import SwiftUI
         .foregroundStyle(RetroPalette.brass)
     }
 
+    /// Six preset keys bound live to the first six of My Stations: reordering or
+    /// editing the list updates the keys automatically. Each key shows the
+    /// station's logo when one can be loaded, otherwise the default key face.
     private var presetRow: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
-                ForEach(0..<RadioPresets.slotCount, id: \.self) { slot in
-                    let preset = presets.station(at: slot)
+                ForEach(0..<6, id: \.self) { slot in
+                    let station: RadioStation? = slot < stations.stations.count ? stations.stations[slot] : nil
                     PresetKey(number: slot + 1,
-                              title: preset?.name,
-                              isActive: preset != nil && preset?.id == stations.currentStation?.id)
+                              station: station,
+                              isActive: station != nil && station?.id == stations.currentStation?.id)
                         .contentShape(Rectangle())
-                        .onTapGesture { playPreset(slot) }
-                        .onLongPressGesture(minimumDuration: 0.6) { savePreset(slot) }
+                        .onTapGesture { if let station { playPreset(station) } }
                         .accessibilityElement(children: .ignore)
-                        .accessibilityLabel("预设 \(slot + 1)：\(preset?.name ?? "空")")
-                        .accessibilityHint("轻点播放，长按保存当前电台")
+                        .accessibilityLabel("预设 \(slot + 1)：\(station?.name ?? "空")")
+                        .accessibilityHint("轻点播放")
                         .accessibilityAddTraits(.isButton)
-                        .accessibilityAction(named: "保存当前电台") { savePreset(slot) }
                 }
             }
-            Text("轻点预设播放 · 长按保存当前电台")
+            Text("预设对应「我的电台」前 6 个")
                 .font(.system(size: 10))
                 .foregroundStyle(RetroPalette.brass.opacity(0.6))
                 .frame(maxWidth: .infinity)
@@ -300,23 +297,9 @@ import SwiftUI
         }
     }
 
-    private func playPreset(_ slot: Int) {
-        guard let station = presets.station(at: slot) else {
-            showToast("长按可把当前电台保存到预设 \(slot + 1)")
-            return
-        }
+    private func playPreset(_ station: RadioStation) {
         tunedIndex = nil
         stations.activate(station, on: .carPlay)
-    }
-
-    private func savePreset(_ slot: Int) {
-        guard let station = stations.currentStation else {
-            showToast("请先选择一个电台")
-            return
-        }
-        presets.save(station, to: slot)
-        savedCount += 1
-        showToast("已保存到预设 \(slot + 1)")
     }
 
     private func showToast(_ message: String) {

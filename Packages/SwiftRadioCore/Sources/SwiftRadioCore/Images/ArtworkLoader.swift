@@ -46,6 +46,17 @@ public actor ArtworkLoader {
         }
     }
 
+    /// Returns the station's logo image, or nil when the station has no logo or the
+    /// download fails. Unlike `image(for:)`, this never substitutes the placeholder,
+    /// so callers can fall back to their own default artwork.
+    public func logo(for station: RadioStation) async -> UIImage? {
+        switch station.artworkSource {
+        case .asset(let name): return asset(named: name)
+        case .remote(let url): return await trackArtwork(at: url)
+        case .placeholder: return nil
+        }
+    }
+
     /// The URL is the request identity; a caller must discard results for obsolete metadata URLs.
     /// Cancelling one caller leaves a shared download running for the others; cancelling the last
     /// one cancels the download, so abandoned artwork does not keep loading until it times out.

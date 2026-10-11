@@ -85,12 +85,12 @@ struct SystemVolumeBridge: UIViewRepresentable {
     func updateUIView(_ uiView: MPVolumeView, context: Context) {}
 }
 
-/// The volume knob: a smaller ribbed knob next to the tuning knob.
+/// The volume knob: same footprint as the tuning knob, placed symmetrically.
 @MainActor struct VolumeKnobView: View {
     @Bindable var controller: VolumeController
+    var size: CGFloat = 112
     @State private var lastDragAngle: Double?
 
-    private let size: CGFloat = 84
     /// Knob travel: -135° (silent) to +135° (full).
     private let sweep: Double = 270
 

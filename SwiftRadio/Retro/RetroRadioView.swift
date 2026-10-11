@@ -165,6 +165,26 @@ import SwiftUI
 
     private var controls: some View {
         HStack(alignment: .top, spacing: 6) {
+            VStack(spacing: 6) {
+                TuningKnob(angle: knobAngle, size: knobSize)
+                    .contentShape(Circle())
+                    .gesture(knobGesture)
+                    .accessibilityElement()
+                    .accessibilityLabel("调谐旋钮")
+                    .accessibilityValue(displayStationName)
+                    .accessibilityAdjustableAction { direction in
+                        switch direction {
+                        case .increment: step(1, commit: true)
+                        case .decrement: step(-1, commit: true)
+                        @unknown default: break
+                        }
+                    }
+                Text("转动调台")
+                    .font(.system(size: 10))
+                    .foregroundStyle(RetroPalette.brass.opacity(0.6))
+            }
+            .frame(maxWidth: .infinity)
+
             VStack(spacing: 14) {
                 Button { togglePlayback() } label: {
                     Image(systemName: isActive ? "pause.fill" : "play.fill")
@@ -196,27 +216,7 @@ import SwiftUI
             .frame(maxWidth: .infinity)
 
             VStack(spacing: 6) {
-                TuningKnob(angle: knobAngle, size: knobSize)
-                    .contentShape(Circle())
-                    .gesture(knobGesture)
-                    .accessibilityElement()
-                    .accessibilityLabel("调谐旋钮")
-                    .accessibilityValue(displayStationName)
-                    .accessibilityAdjustableAction { direction in
-                        switch direction {
-                        case .increment: step(1, commit: true)
-                        case .decrement: step(-1, commit: true)
-                        @unknown default: break
-                        }
-                    }
-                Text("转动调台")
-                    .font(.system(size: 10))
-                    .foregroundStyle(RetroPalette.brass.opacity(0.6))
-            }
-            .frame(maxWidth: .infinity)
-
-            VStack(spacing: 6) {
-                VolumeKnobView(controller: volumeController)
+                VolumeKnobView(controller: volumeController, size: knobSize)
                 Text("音量")
                     .font(.system(size: 10))
                     .foregroundStyle(RetroPalette.brass.opacity(0.6))

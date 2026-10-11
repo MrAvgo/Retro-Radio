@@ -273,11 +273,22 @@ struct PresetKey: View {
     var body: some View {
         ZStack {
             if let logo {
-                Image(uiImage: logo)
-                    .resizable()
-                    .scaledToFit()
-                    .padding(7)
-                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                ZStack {
+                    // Ivory nameplate: gives mixed logos (transparent, white, colored)
+                    // a uniform face, like labeled preset keys on a real set.
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(Color(white: 0.98))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                                .strokeBorder(RetroPalette.keyShadow.opacity(0.45), lineWidth: 0.5)
+                        )
+                        .shadow(color: .black.opacity(0.18), radius: 1, y: 1)
+                    Image(uiImage: logo)
+                        .resizable()
+                        .scaledToFit()
+                        .padding(9)
+                }
+                .padding(6)
             } else {
                 VStack(spacing: 3) {
                     Text("\(number)")
@@ -300,16 +311,6 @@ struct PresetKey: View {
                 .shadow(color: .black.opacity(isActive ? 0.2 : 0.55), radius: isActive ? 1 : 3,
                         y: isActive ? 1 : 3)
         )
-        .overlay(alignment: .topLeading) {
-            // Slot number stays visible on logo keys so presets keep their 1–6 identity.
-            if logo != nil {
-                Text("\(number)")
-                    .font(.system(size: 9, weight: .bold, design: .serif))
-                    .foregroundStyle(RetroPalette.dialInk.opacity(0.65))
-                    .padding(.leading, 6)
-                    .padding(.top, 4)
-            }
-        }
         .overlay(alignment: .top) {
             Capsule()
                 .fill(isActive ? RetroPalette.amber : Color.clear)

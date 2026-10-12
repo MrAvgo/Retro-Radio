@@ -155,7 +155,7 @@ import SwiftUI
                         .accessibilityAddTraits(.isButton)
                 }
             }
-            Text("预设对应「我的电台」前 6 个，共 \(stations.stations.count) 个")
+            Text("预设对应「我的电台」\(stations.stations.count) 个中的前 6 个")
                 .font(.system(size: 10))
                 .foregroundStyle(RetroPalette.brass.opacity(0.6))
                 .frame(maxWidth: .infinity)

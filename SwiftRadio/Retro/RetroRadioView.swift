@@ -185,7 +185,7 @@ import SwiftUI
             }
             .frame(maxWidth: .infinity)
 
-            VStack(spacing: 14) {
+            VStack(spacing: 6) {
                 Button { togglePlayback() } label: {
                     Image(systemName: isActive ? "pause.fill" : "play.fill")
                         .font(.system(size: 28, weight: .semibold))
@@ -199,19 +199,9 @@ import SwiftUI
                         .shadow(color: .black.opacity(0.5), radius: 6, y: 4)
                 }
                 .accessibilityLabel(isActive ? "暂停" : "播放")
-
-                HStack(spacing: 20) {
-                    Button { step(-1, commit: true) } label: {
-                        Image(systemName: "backward.end.fill")
-                    }
-                    .accessibilityLabel("上一个电台")
-                    Button { step(1, commit: true) } label: {
-                        Image(systemName: "forward.end.fill")
-                    }
-                    .accessibilityLabel("下一个电台")
-                }
-                .font(.system(size: 17))
-                .foregroundStyle(RetroPalette.brass)
+                Text(isActive ? "暂停" : "播放")
+                    .font(.system(size: 10))
+                    .foregroundStyle(RetroPalette.brass.opacity(0.6))
             }
             .frame(maxWidth: .infinity)
 

@@ -173,11 +173,17 @@ struct StationDraft: Identifiable {
     @Environment(\.dismiss) private var dismiss
     @State private var draft: StationDraft
     @State private var error: String?
+    @State private var testResult: ConnectionTestResult = .idle
+    @State private var testTask: Task<Void, Never>?
     let onSave: (StationDraft) -> String?
 
     init(draft: StationDraft, onSave: @escaping (StationDraft) -> String?) {
         _draft = State(initialValue: draft)
         self.onSave = onSave
+    }
+
+    private var streamURLTrimmed: String {
+        draft.streamURL.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     var body: some View {
@@ -193,6 +199,27 @@ struct StationDraft: Identifiable {
                 } footer: {
                     Text("支持 MP3 / AAC / HLS (.m3u8) 等直播流地址。")
                 }
+                Section {
+                    Button {
+                        testTask?.cancel()
+                        testTask = Task {
+                            testResult = .testing
+                            let result = await StationConnectionTester.test(streamURL: streamURLTrimmed)
+                            if !Task.isCancelled { testResult = result }
+                        }
+                    } label: {
+                        HStack {
+                            if testResult == .testing { ProgressView() }
+                            Text(testResult == .testing ? "测试中…" : "测试连接")
+                        }
+                    }
+                    .disabled(streamURLTrimmed.isEmpty || testResult == .testing)
+                    testResultRow
+                } header: {
+                    Text("连接测试")
+                } footer: {
+                    Text("验证地址能否连通，并抽查音频是否有声音（连得上不等于有声音）。测试结果仅供参考，不影响保存。")
+                }
                 if let error {
                     Section {
                         Text(error).foregroundStyle(.red)
@@ -201,6 +228,11 @@ struct StationDraft: Identifiable {
             }
             .navigationTitle(draft.original == nil ? "添加电台" : "编辑电台")
             .navigationBarTitleDisplayMode(.inline)
+            .onChange(of: draft.streamURL) {
+                testTask?.cancel()
+                testTask = nil
+                testResult = .idle
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { dismiss() }
@@ -217,5 +249,24 @@ struct StationDraft: Identifiable {
             }
         }
         .tint(RetroPalette.amber)
+    }
+
+    @ViewBuilder private var testResultRow: some View {
+        switch testResult {
+        case .idle, .testing:
+            EmptyView()
+        case .verified:
+            Label("连接已验证，有声音", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+        case .silent:
+            Label("能连通，但是静音（无音频信号）", systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+        case .reachableUnverified:
+            Label("能连通，未能检测音频内容", systemImage: "questionmark.circle")
+                .foregroundStyle(.secondary)
+        case .failed(let reason):
+            Label("连接失败：\(reason)", systemImage: "xmark.circle.fill")
+                .foregroundStyle(.red)
+        }
     }
 }

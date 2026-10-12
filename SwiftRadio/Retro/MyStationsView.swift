@@ -18,6 +18,8 @@ import SwiftUI
     @State private var draft: StationDraft?
     @State private var confirmReset = false
     @State private var showSearch = false
+    @State private var refreshingLogoIDs: Set<String> = []
+    @State private var logoRefreshMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -46,6 +48,10 @@ import SwiftUI
                             Button { draft = StationDraft(editing: station) } label: {
                                 Label("编辑", systemImage: "pencil")
                             }
+                            Button { refreshLogo(for: station) } label: {
+                                Label("重新获取台标", systemImage: "arrow.clockwise")
+                            }
+                            .disabled(refreshingLogoIDs.contains(station.id))
                             Button(role: .destructive) { library.delete(station) } label: {
                                 Label("删除", systemImage: "trash")
                             }
@@ -108,6 +114,13 @@ import SwiftUI
             } message: {
                 Text("你添加的电台会被清除，预设按钮不受影响。")
             }
+            .alert("重新获取台标", isPresented: Binding(
+                get: { logoRefreshMessage != nil },
+                set: { if !$0 { logoRefreshMessage = nil } }
+            )) {
+            } message: {
+                Text(logoRefreshMessage ?? "")
+            }
         }
         .tint(RetroPalette.amber)
     }
@@ -115,9 +128,14 @@ import SwiftUI
     private func row(for station: SwiftRadioCore.RadioStation) -> some View {
         let isCurrent = station.id == stations.currentStation?.id
         return HStack(spacing: 12) {
-            StationRowLogo(station: station,
-                           isPlaying: isCurrent && player.state == .playing,
-                           isCurrent: isCurrent)
+            if refreshingLogoIDs.contains(station.id) {
+                ProgressView()
+                    .frame(width: 40, height: 40)
+            } else {
+                StationRowLogo(station: station,
+                               isPlaying: isCurrent && player.state == .playing,
+                               isCurrent: isCurrent)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(station.name)
                     .foregroundStyle(.primary)
@@ -137,6 +155,25 @@ import SwiftUI
             return library.update(original, to: station)
         }
         return library.add(station)
+    }
+
+    /// Manual logo re-fetch from the row's context menu. A failed refresh never
+    /// loses the old logo (`AppEnvironment.refreshLogo` restores it).
+    private func refreshLogo(for station: SwiftRadioCore.RadioStation) {
+        guard !refreshingLogoIDs.contains(station.id) else { return }
+        refreshingLogoIDs.insert(station.id)
+        Task {
+            let result = await AppEnvironment.shared.refreshLogo(for: station)
+            refreshingLogoIDs.remove(station.id)
+            switch result {
+            case .found:
+                logoRefreshMessage = "已更新「\(station.name)」的台标。"
+            case .keptOld:
+                logoRefreshMessage = "没有找到更好的台标，已保留原来的。"
+            case .notFound:
+                logoRefreshMessage = "没有找到可用的台标。"
+            }
+        }
     }
 }
 

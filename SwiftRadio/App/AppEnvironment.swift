@@ -14,6 +14,16 @@ import SwiftRadioCore
 import UIKit
 import WidgetKit
 
+/// Outcome of a manual logo re-fetch (`AppEnvironment.refreshLogo`).
+enum RefreshLogoResult {
+    /// A new logo URL was found and saved.
+    case found(String)
+    /// Nothing better was found; the previous logo (if any) was restored.
+    case keptOld
+    /// Nothing found and there was no previous logo.
+    case notFound
+}
+
 /// Composes the single playback owner, shared stores, and scene-independent artwork updates.
 @MainActor final class AppEnvironment {
     /// The single intentional application global: UIKit CarPlay and SwiftUI share this instance.
@@ -152,6 +162,14 @@ import WidgetKit
     /// Stations already tried this launch (hit or miss); misses are retried next launch.
     private var logoDiscoveryAttempted: Set<String> = []
 
+    /// Short-timeout session for favicon/HTML fetches; discovery must not hang the UI.
+    private static let discoverySession: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 12
+        config.timeoutIntervalForResource = 20
+        return URLSession(configuration: config)
+    }()
+
     /// When tuning to a station that has no logo URL, try its website favicon.
     /// A hit is written back to the library (persisted), so preset keys and lists
     /// pick it up; the check runs on every tune, as requested.
@@ -168,23 +186,112 @@ import WidgetKit
     private func discoverLogoIfNeeded(for station: SwiftRadioCore.RadioStation) async {
         guard station.imageURL.isEmpty else { return }
         guard let website = station.website, !website.isEmpty,
-              let host = URL(string: website)?.host, !host.isEmpty else { return }
+              URL(string: website)?.host != nil else { return }
         guard logoDiscoveryAttempted.insert(station.id).inserted else { return }
 
-        for urlString in ["https://\(host)/apple-touch-icon.png", "https://\(host)/favicon.ico"] {
-            guard let url = URL(string: urlString),
-                  await isValidFavicon(at: url) else { continue }
-            var updated = station
-            updated.imageURL = urlString
-            if let index = library.stations.firstIndex(where: { $0.id == station.id }) {
-                _ = library.update(library.stations[index], to: updated)
-            }
-            return
+        guard let found = await discoverLogoURL(for: station) else { return }
+        var updated = station
+        updated.imageURL = found
+        if let index = library.stations.firstIndex(where: { $0.id == station.id }) {
+            _ = library.update(library.stations[index], to: updated)
         }
     }
 
+    /// Manual re-fetch: clears any existing (possibly wrong) logo and re-runs
+    /// discovery, bypassing the once-per-launch guard. Restores the old URL when
+    /// nothing better is found, so a failed refresh never loses the old logo.
+    func refreshLogo(for station: SwiftRadioCore.RadioStation) async -> RefreshLogoResult {
+        logoDiscoveryAttempted.remove(station.id)
+        let oldURL = station.imageURL
+        var cleared = station
+        cleared.imageURL = ""
+        guard let index = library.stations.firstIndex(where: { $0.id == station.id }) else {
+            return .notFound
+        }
+        _ = library.update(library.stations[index], to: cleared)
+        await discoverLogoIfNeeded(for: cleared)
+
+        if let newURL = library.stations.first(where: { $0.id == station.id })?.imageURL,
+           !newURL.isEmpty {
+            return .found(newURL)
+        }
+        if !oldURL.isEmpty,
+           let index = library.stations.firstIndex(where: { $0.id == station.id }) {
+            var restored = cleared
+            restored.imageURL = oldURL
+            _ = library.update(library.stations[index], to: restored)
+            return .keptOld
+        }
+        return .notFound
+    }
+
+    /// Candidate logo URLs for a station, best-first: `<link rel="icon">` hints
+    /// from the website HTML, then the conventional root locations.
+    private func discoverLogoURL(for station: SwiftRadioCore.RadioStation) async -> String? {
+        guard let website = station.website, !website.isEmpty,
+              let pageURL = URL(string: website),
+              let host = pageURL.host, !host.isEmpty else { return nil }
+
+        var candidates: [String] = []
+        if let links = await iconLinks(from: pageURL) {
+            candidates.append(contentsOf: links)
+        }
+        candidates.append("https://\(host)/apple-touch-icon.png")
+        candidates.append("https://\(host)/favicon.ico")
+
+        for urlString in candidates {
+            guard let url = URL(string: urlString),
+                  await isValidFavicon(at: url) else { continue }
+            return urlString
+        }
+        return nil
+    }
+
+    /// Parses `<link rel="icon" href="…">` (and apple-touch-icon variants) out of
+    /// a website's HTML. Apple-touch icons come first; data: URLs are skipped.
+    private func iconLinks(from pageURL: URL) async -> [String]? {
+        guard let (data, response) = try? await Self.discoverySession.data(from: pageURL),
+              let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+              data.count <= 2_000_000,
+              let html = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1)
+        else { return nil }
+
+        guard let tagRegex = try? NSRegularExpression(pattern: #"<link\b[^>]*>"#, options: .caseInsensitive),
+              let hrefRegex = try? NSRegularExpression(pattern: #"href\s*=\s*["']([^"']+)["']"#, options: .caseInsensitive)
+        else { return nil }
+
+        var touchIcons: [String] = []
+        var otherIcons: [String] = []
+        let fullRange = NSRange(html.startIndex..., in: html)
+        for match in tagRegex.matches(in: html, range: fullRange) {
+            guard let tagRange = Range(match.range, in: html) else { continue }
+            let tag = String(html[tagRange])
+            guard tag.range(of: #"rel\s*=\s*["'][^"']*icon[^"']*["']"#,
+                            options: [.regularExpression, .caseInsensitive]) != nil,
+                  let hrefMatch = hrefRegex.firstMatch(in: tag, range: NSRange(tag.startIndex..., in: tag)),
+                  hrefMatch.numberOfRanges > 1,
+                  let hrefRange = Range(hrefMatch.range(at: 1), in: tag)
+            else { continue }
+            let href = String(tag[hrefRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !href.isEmpty, !href.lowercased().hasPrefix("data:"),
+                  let absolute = URL(string: href, relativeTo: pageURL)?.absoluteURL,
+                  let scheme = absolute.scheme?.lowercased(),
+                  scheme == "http" || scheme == "https"
+            else { continue }
+            let urlString = absolute.absoluteString
+            let isTouch = tag.range(of: "apple-touch-icon", options: .caseInsensitive) != nil
+            if isTouch, !touchIcons.contains(urlString) {
+                touchIcons.append(urlString)
+            } else if !isTouch, !otherIcons.contains(urlString) {
+                otherIcons.append(urlString)
+            }
+        }
+        let all = touchIcons + otherIcons
+        return all.isEmpty ? nil : all
+    }
+
     private func isValidFavicon(at url: URL) async -> Bool {
-        guard let (data, response) = try? await URLSession.shared.data(from: url),
+        guard let (data, response) = try? await Self.discoverySession.data(from: url),
               let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
               let image = UIImage(data: data),
               min(image.size.width, image.size.height) >= 16 else { return false }

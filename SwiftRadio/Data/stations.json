@@ -34,6 +34,22 @@
             "longDesc": "BBC World Service English radio."
         },
         {
+            "name": "VOA Learning English（慢速英语）",
+            "website": "https://learningenglish.voanews.com/",
+            "streamURL": "https://voa-ingest.akamaized.net/hls/live/2035234/160_342L/playlist.m3u8",
+            "imageURL": "",
+            "desc": "美国之音慢速英语教学广播",
+            "longDesc": "VOA Learning English (Special English), official HLS live stream."
+        },
+        {
+            "name": "VOA Global English（主新闻台）",
+            "website": "https://www.voanews.com/",
+            "streamURL": "https://voa-ingest.akamaized.net/hls/live/2035200/161_352R/playlist.m3u8",
+            "imageURL": "",
+            "desc": "美国之音英语主新闻台",
+            "longDesc": "VOA Global English news, official HLS live stream."
+        },
+        {
             "name": "中国之声 CNR-1",
             "website": "https://www.cnr.cn",
             "streamURL": "https://lhttp.qtfm.cn/live/15318317/64k.mp3",

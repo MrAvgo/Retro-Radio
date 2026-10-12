@@ -18,6 +18,8 @@ import WidgetKit
 enum RefreshLogoResult {
     /// A new logo URL was found and saved.
     case found(String)
+    /// Discovery found the same URL as before; nothing changed.
+    case unchanged
     /// Nothing better was found; the previous logo (if any) was restored.
     case keptOld
     /// Nothing found and there was no previous logo.
@@ -213,7 +215,8 @@ enum RefreshLogoResult {
 
         if let newURL = library.stations.first(where: { $0.id == station.id })?.imageURL,
            !newURL.isEmpty {
-            return .found(newURL)
+            // Discovery may return the same URL we just cleared; that is not an update.
+            return newURL == oldURL ? .unchanged : .found(newURL)
         }
         if !oldURL.isEmpty,
            let index = library.stations.firstIndex(where: { $0.id == station.id }) {

@@ -187,9 +187,9 @@ import SwiftUI
             VStack(spacing: 6) {
                 Button { togglePlayback() } label: {
                     Image(systemName: isActive ? "pause.fill" : "play.fill")
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(.system(size: 34, weight: .semibold))
                         .foregroundStyle(RetroPalette.lcdBackground)
-                        .frame(width: 68, height: 68)
+                        .frame(width: 84, height: 84)
                         .background(
                             Circle().fill(LinearGradient(colors: [RetroPalette.amber, RetroPalette.brass],
                                                          startPoint: .top, endPoint: .bottom))
@@ -311,23 +311,17 @@ import SwiftUI
     }
 
     /// Moves the pointer by whole stations; `commit` tunes immediately (buttons, VoiceOver).
-    /// Station stepping is circular: past the last station wraps to the first, and vice versa.
+    /// Stops at the first/last station; no wrap-around.
     private func step(_ delta: Int, commit: Bool) {
         let count = stations.stations.count
         guard count > 0 else { return }
         let start = pointedIndex ?? (delta > 0 ? -1 : count)
-        let target = wrapped(start + delta, count: count)
+        let target = min(max(start + delta, 0), count - 1)
         if target != pointedIndex {
             tunedIndex = target
             tickCount += 1
         }
         if commit { commitTuning() }
-    }
-
-    /// Circular index: wraps around both ends so knobs can spin endlessly.
-    private func wrapped(_ raw: Int, count: Int) -> Int {
-        let r = raw % count
-        return r >= 0 ? r : r + count
     }
 
     private func tune(toFraction fraction: Double) {
@@ -379,13 +373,17 @@ import SwiftUI
     }
 
     /// Knob detent: move the needle one station without starting playback yet.
-    /// Circular: keeps wrapping around the station list while the knob spins.
+    /// Stops at the ends; hitting an end drops the accumulated excess so
+    /// reversing direction responds immediately.
     private func stepPointer(_ delta: Int) {
         let count = stations.stations.count
         guard count > 0 else { return }
         let start = pointedIndex ?? (delta > 0 ? -1 : count)
-        let target = wrapped(start + delta, count: count)
-        guard target != pointedIndex else { return }
+        let target = min(max(start + delta, 0), count - 1)
+        guard target != pointedIndex else {
+            stepAccumulator = 0
+            return
+        }
         tunedIndex = target
         tickCount += 1
     }

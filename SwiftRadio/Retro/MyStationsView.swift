@@ -168,6 +168,8 @@ import SwiftUI
             switch result {
             case .found:
                 logoRefreshMessage = "已更新「\(station.name)」的台标。"
+            case .unchanged:
+                logoRefreshMessage = "台标没有变化，已是最新。"
             case .keptOld:
                 logoRefreshMessage = "没有找到更好的台标，已保留原来的。"
             case .notFound:

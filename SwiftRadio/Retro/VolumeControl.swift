@@ -86,13 +86,16 @@ struct SystemVolumeBridge: UIViewRepresentable {
 }
 
 /// The volume knob: same footprint as the tuning knob, placed symmetrically.
-/// Absolute indicator like the tuning knob: the dot sits at the bottom for
-/// both 0 and max (the wrap point); counterclockwise from the bottom the
-/// volume rises from 0, clockwise from the bottom it falls from max.
+/// Absolute indicator with a dead zone at the bottom (like the tuning knob):
+/// 0 at -135° (lower left), max at +135° (lower right), clockwise increases.
+/// Position and volume map one-to-one, so the dot always tells the truth.
 @MainActor struct VolumeKnobView: View {
     @Bindable var controller: VolumeController
     var size: CGFloat = 112
     @State private var lastDragAngle: Double?
+
+    /// Knob travel: -135° (silent) to +135° (full), bottom quarter left empty.
+    private let sweep: Double = 270
 
     var body: some View {
         TuningKnob(angle: Self.angle(for: controller.volume), size: size)
@@ -111,8 +114,8 @@ struct SystemVolumeBridge: UIViewRepresentable {
                         var delta = angle - previous
                         if delta > 180 { delta -= 360 }
                         if delta < -180 { delta += 360 }
-                        // Counterclockwise increases: one full turn = one full 0...1 sweep.
-                        controller.setVolume(wrap(controller.volume - Float(delta / 360)))
+                        // Clockwise increases; the ends clamp (no wrap with a dead zone).
+                        controller.setVolume(controller.volume + Float(delta / sweep))
                     }
                     .onEnded { _ in lastDragAngle = nil }
             )
@@ -128,16 +131,8 @@ struct SystemVolumeBridge: UIViewRepresentable {
             }
     }
 
-    /// Dot angle for a volume: 180° (bottom) at 0, sweeping counterclockwise
-    /// (180° → 90° → 0° → -90° → -180°) as the volume rises to max.
+    /// Dot angle for a volume: -135° at 0, +135° at max.
     private static func angle(for volume: Float) -> Double {
-        180 - 360 * Double(volume)
-    }
-
-    /// Wraps a volume into [0, 1): turning past max circles back to silent.
-    private func wrap(_ value: Float) -> Float {
-        var r = value.truncatingRemainder(dividingBy: 1)
-        if r < 0 { r += 1 }
-        return r
+        -135 + 270 * Double(volume)
     }
 }

@@ -86,16 +86,20 @@ struct SystemVolumeBridge: UIViewRepresentable {
 }
 
 /// The volume knob: same footprint as the tuning knob, placed symmetrically.
+/// Endless-encoder style: the knob spins freely and volume wraps around
+/// (past full wraps to silent and vice versa), like a circular dial.
 @MainActor struct VolumeKnobView: View {
     @Bindable var controller: VolumeController
     var size: CGFloat = 112
     @State private var lastDragAngle: Double?
+    /// Free-spinning knob angle; nil until first synced from the system volume.
+    @State private var spinAngle: Double?
 
-    /// Knob travel: -135° (silent) to +135° (full).
-    private let sweep: Double = 270
+    /// Degrees of knob rotation per full 0...1 volume sweep.
+    private let degreesPerSweep: Double = 270
 
     var body: some View {
-        TuningKnob(angle: angle, size: size)
+        TuningKnob(angle: spinAngle ?? -degreesPerSweep / 2 + Double(controller.volume) * degreesPerSweep, size: size)
             .contentShape(Circle())
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -111,7 +115,8 @@ struct SystemVolumeBridge: UIViewRepresentable {
                         var delta = angle - previous
                         if delta > 180 { delta -= 360 }
                         if delta < -180 { delta += 360 }
-                        controller.setVolume(controller.volume + Float(delta / sweep))
+                        spinAngle = (spinAngle ?? -degreesPerSweep / 2 + Double(controller.volume) * degreesPerSweep) + delta
+                        controller.setVolume(wrap(controller.volume + Float(delta / degreesPerSweep)))
                     }
                     .onEnded { _ in lastDragAngle = nil }
             )
@@ -127,7 +132,10 @@ struct SystemVolumeBridge: UIViewRepresentable {
             }
     }
 
-    private var angle: Double {
-        -sweep / 2 + Double(controller.volume) * sweep
+    /// Wraps a volume delta into [0, 1): turning past full circles back to silent.
+    private func wrap(_ value: Float) -> Float {
+        var r = value.truncatingRemainder(dividingBy: 1)
+        if r < 0 { r += 1 }
+        return r
     }
 }

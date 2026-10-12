@@ -307,11 +307,12 @@ import SwiftUI
     }
 
     /// Moves the pointer by whole stations; `commit` tunes immediately (buttons, VoiceOver).
+    /// Station stepping is circular: past the last station wraps to the first, and vice versa.
     private func step(_ delta: Int, commit: Bool) {
         let count = stations.stations.count
         guard count > 0 else { return }
         let start = pointedIndex ?? (delta > 0 ? -1 : count)
-        let target = min(max(start + delta, 0), count - 1)
+        let target = wrapped(start + delta, count: count)
         if target != pointedIndex {
             tunedIndex = target
             tickCount += 1
@@ -320,6 +321,12 @@ import SwiftUI
             }
         }
         if commit { commitTuning() }
+    }
+
+    /// Circular index: wraps around both ends so knobs can spin endlessly.
+    private func wrapped(_ raw: Int, count: Int) -> Int {
+        let r = raw % count
+        return r >= 0 ? r : r + count
     }
 
     private func tune(toFraction fraction: Double) {
@@ -376,11 +383,12 @@ import SwiftUI
     }
 
     /// Knob detent: move the needle one station without starting playback yet.
+    /// Circular: keeps wrapping around the station list while the knob spins.
     private func stepPointer(_ delta: Int) {
         let count = stations.stations.count
         guard count > 0 else { return }
         let start = pointedIndex ?? (delta > 0 ? -1 : count)
-        let target = min(max(start + delta, 0), count - 1)
+        let target = wrapped(start + delta, count: count)
         guard target != pointedIndex else { return }
         tunedIndex = target
         tickCount += 1

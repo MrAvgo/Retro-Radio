@@ -20,7 +20,6 @@ import SwiftUI
     /// Station index the knob/dial is pointing at while the user is tuning; nil follows playback.
     @State private var tunedIndex: Int?
     @State private var volumeController = VolumeController()
-    @State private var knobAngle: Double = 0
     @State private var lastDragAngle: Double?
     @State private var stepAccumulator: Double = 0
     @State private var tickCount = 0
@@ -166,7 +165,7 @@ import SwiftUI
     private var controls: some View {
         HStack(alignment: .top, spacing: 6) {
             VStack(spacing: 6) {
-                TuningKnob(angle: knobAngle, size: knobSize)
+                TuningKnob(angle: tuningKnobAngle, size: knobSize)
                     .contentShape(Circle())
                     .gesture(knobGesture)
                     .accessibilityElement()
@@ -234,6 +233,21 @@ import SwiftUI
         guard count > 0 else { return nil }
         guard let index = pointedIndex else { return stations.currentStation == nil ? 0 : nil }
         return count > 1 ? Double(index) / Double(count - 1) : 0.5
+    }
+
+    /// Tuning knob dot angle, absolute like the needle: -135° at the first
+    /// station, +135° at the last, so the dot always sits on the same side
+    /// as the needle. While dragging, the in-progress detent fraction adds
+    /// smooth geared motion; at rest (accumulator = 0) it matches exactly.
+    private var tuningKnobAngle: Double {
+        let count = stations.stations.count
+        let fraction = needlePosition ?? 0
+        var angle = -135 + 270 * fraction
+        if count > 1 {
+            let perStationDegrees = 270 / Double(count - 1)
+            angle += (stepAccumulator / degreesPerStep) * perStationDegrees
+        }
+        return angle
     }
 
     private var frequencyText: String {
@@ -306,9 +320,6 @@ import SwiftUI
         if target != pointedIndex {
             tunedIndex = target
             tickCount += 1
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                knobAngle += Double(delta) * degreesPerStep
-            }
         }
         if commit { commitTuning() }
     }
@@ -323,13 +334,9 @@ import SwiftUI
         let count = stations.stations.count
         guard count > 0 else { return }
         let target = Int((fraction * Double(count - 1)).rounded())
-        let delta = target - (pointedIndex ?? target)
         if target != pointedIndex {
             tunedIndex = target
             tickCount += 1
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                knobAngle += Double(delta) * degreesPerStep
-            }
         }
         commitTuning()
     }
@@ -357,7 +364,6 @@ import SwiftUI
                 var delta = angle - previous
                 if delta > 180 { delta -= 360 }
                 if delta < -180 { delta += 360 }
-                knobAngle += delta
                 stepAccumulator += delta
                 while abs(stepAccumulator) >= degreesPerStep {
                     let direction = stepAccumulator > 0 ? 1 : -1

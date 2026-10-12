@@ -86,20 +86,16 @@ struct SystemVolumeBridge: UIViewRepresentable {
 }
 
 /// The volume knob: same footprint as the tuning knob, placed symmetrically.
-/// Endless-encoder style: the knob spins freely and volume wraps around
-/// (past full wraps to silent and vice versa), like a circular dial.
+/// Absolute indicator like the tuning knob: the dot sits at the bottom for
+/// both 0 and max (the wrap point); counterclockwise from the bottom the
+/// volume rises from 0, clockwise from the bottom it falls from max.
 @MainActor struct VolumeKnobView: View {
     @Bindable var controller: VolumeController
     var size: CGFloat = 112
     @State private var lastDragAngle: Double?
-    /// Free-spinning knob angle; nil until first synced from the system volume.
-    @State private var spinAngle: Double?
-
-    /// Degrees of knob rotation per full 0...1 volume sweep.
-    private let degreesPerSweep: Double = 270
 
     var body: some View {
-        TuningKnob(angle: spinAngle ?? -degreesPerSweep / 2 + Double(controller.volume) * degreesPerSweep, size: size)
+        TuningKnob(angle: Self.angle(for: controller.volume), size: size)
             .contentShape(Circle())
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -115,8 +111,8 @@ struct SystemVolumeBridge: UIViewRepresentable {
                         var delta = angle - previous
                         if delta > 180 { delta -= 360 }
                         if delta < -180 { delta += 360 }
-                        spinAngle = (spinAngle ?? -degreesPerSweep / 2 + Double(controller.volume) * degreesPerSweep) + delta
-                        controller.setVolume(wrap(controller.volume + Float(delta / degreesPerSweep)))
+                        // Counterclockwise increases: one full turn = one full 0...1 sweep.
+                        controller.setVolume(wrap(controller.volume - Float(delta / 360)))
                     }
                     .onEnded { _ in lastDragAngle = nil }
             )
@@ -132,7 +128,13 @@ struct SystemVolumeBridge: UIViewRepresentable {
             }
     }
 
-    /// Wraps a volume delta into [0, 1): turning past full circles back to silent.
+    /// Dot angle for a volume: 180° (bottom) at 0, sweeping counterclockwise
+    /// (180° → 90° → 0° → -90° → -180°) as the volume rises to max.
+    private static func angle(for volume: Float) -> Double {
+        180 - 360 * Double(volume)
+    }
+
+    /// Wraps a volume into [0, 1): turning past max circles back to silent.
     private func wrap(_ value: Float) -> Float {
         var r = value.truncatingRemainder(dividingBy: 1)
         if r < 0 { r += 1 }
